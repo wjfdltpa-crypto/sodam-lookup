@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>소담클래스 컨설팅 배정 조회</title>
+<style>
+  :root{
+    --primary:#2b5c4f; --primary-dark:#1e4238; --accent:#e8734a;
+    --bg:#f4f6f5; --card:#ffffff; --text:#22302c; --muted:#6b7c76;
+    --danger:#c0392b; --line:#e2e8e5;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
+    background:var(--bg); color:var(--text); min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    width:100%; background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    color:#fff; text-align:center; padding:44px 20px 60px;
+  }
+  header .badge{
+    display:inline-block; font-size:12px; letter-spacing:2px; font-weight:600;
+    background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3);
+    border-radius:999px; padding:5px 14px; margin-bottom:14px;
+  }
+  header h1{font-size:clamp(20px,4.5vw,28px); font-weight:700; line-height:1.35}
+  header p{margin-top:10px; font-size:clamp(13px,3vw,15px); opacity:.85; line-height:1.6}
+  main{width:100%; max-width:560px; padding:0 16px 60px; margin-top:-32px}
+  .card{
+    background:var(--card); border-radius:16px; padding:28px 24px;
+    box-shadow:0 6px 24px rgba(30,66,56,.10);
+  }
+  label{display:block; font-size:14px; font-weight:600; margin-bottom:8px}
+  .input-row{display:flex; gap:8px}
+  input#bizno{
+    flex:1; min-width:0; font-size:18px; padding:14px 16px; letter-spacing:1px;
+    border:1.5px solid var(--line); border-radius:10px; outline:none;
+    transition:border-color .15s;
+  }
+  input#bizno:focus{border-color:var(--primary)}
+  button#searchBtn{
+    flex-shrink:0; background:var(--primary); color:#fff; border:none; border-radius:10px;
+    font-size:16px; font-weight:700; padding:0 22px; cursor:pointer;
+    transition:background .15s;
+  }
+  button#searchBtn:hover{background:var(--primary-dark)}
+  button#searchBtn:disabled{background:#9db3ac; cursor:wait}
+  .hint{font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.5}
+  .msg{
+    display:none; margin-top:16px; padding:14px 16px; border-radius:10px;
+    font-size:14px; line-height:1.6;
+  }
+  .msg.error{display:block; background:#fdf0ee; color:var(--danger); border:1px solid #f3cdc7}
+  .msg.info{display:block; background:#eef4f2; color:var(--primary-dark); border:1px solid #d3e2dd}
+  #result{display:none; margin-top:20px}
+  .brand-line{
+    text-align:center; font-size:15px; color:var(--muted); margin-bottom:16px;
+  }
+  .brand-line strong{color:var(--text); font-size:18px}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  @media (max-width:420px){ .grid{grid-template-columns:1fr} }
+  .field{
+    border:1px solid var(--line); border-radius:12px; padding:16px 14px; text-align:center;
+    background:#fafcfb;
+  }
+  .field .k{font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:8px; letter-spacing:.5px}
+  .field .v{
+    display:inline-block; font-size:16px; font-weight:700; padding:7px 16px; border-radius:999px;
+  }
+  .field.vuln .v{background:#fdeee8; color:var(--accent)}
+  .field.cons .v{background:#e7f0ed; color:var(--primary)}
+  .field .v.empty{background:#eef0ef; color:var(--muted); font-weight:500; font-size:14px}
+  .section-title{
+    font-size:13px; font-weight:700; color:var(--muted); letter-spacing:1px;
+    margin:18px 0 10px; display:flex; align-items:center; gap:8px;
+  }
+  .section-title::after{content:''; flex:1; height:1px; background:var(--line)}
+  footer{
+    margin-top:auto; padding:20px; font-size:12px; color:var(--muted); text-align:center; line-height:1.6;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="badge">SODAM CLASS</div>
+  <h1>소담클래스 컨설팅 배정 조회</h1>
+  <p>사업자등록번호 10자리를 입력하시면<br>취약분야와 배정된 컨설팅 분야를 확인하실 수 있습니다.</p>
+</header>
+<main>
+  <div class="card">
+    <label for="bizno">사업자등록번호</label>
+    <div class="input-row">
+      <input id="bizno" type="text" inputmode="numeric" autocomplete="off"
+             placeholder="000-00-00000" maxlength="12" aria-label="사업자등록번호 입력">
+      <button id="searchBtn" type="button">조회</button>
+    </div>
+    <p class="hint">'-' 없이 숫자만 입력하셔도 됩니다. (예: 1234567890)</p>
+    <div id="msg" class="msg" role="alert"></div>
+    <div id="result" aria-live="polite">
+      <p class="brand-line">브랜드 <strong id="rBrand"></strong> 조회 결과</p>
+      <div class="section-title">취약분야</div>
+      <div class="grid">
+        <div class="field vuln"><div class="k">취약분야 1</div><div class="v" id="rV1"></div></div>
+        <div class="field vuln"><div class="k">취약분야 2</div><div class="v" id="rV2"></div></div>
+      </div>
+      <div class="section-title">배정 컨설팅</div>
+      <div class="grid">
+        <div class="field cons"><div class="k">배정 컨설팅 1</div><div class="v" id="rC1"></div></div>
+        <div class="field cons"><div class="k">배정 컨설팅 2</div><div class="v" id="rC2"></div></div>
+      </div>
+    </div>
+  </div>
+</main>
+<footer>본 조회 결과는 소담클래스 자가진단 결과를 바탕으로 하며,<br>문의사항은 운영 사무국으로 연락 바랍니다.</footer>
+<script>
+const DATA = {"df98fe94c65fc073a4c9a47d":{"b":"비아모노","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"76be460cc2ff2303eaf24eb6":{"b":"애프터글로울","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"472e8d5c0a32b90e99b56919":{"b":"미스티카,알파치노","v1":"마케팅","v2":"브랜딩","c1":"브랜딩","c2":"마케팅"},"bdd1ac464fca38c5d5989480":{"b":"리든","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"a478cdd705984e57b6064146":{"b":"윌리워스튜디오","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"4305958b45143ab918d88948":{"b":"LEKIM레킴","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"32bca0fbfe8783a031d30cf7":{"b":"그노크","v1":"세무·회계","v2":"마케팅","c1":"마케팅","c2":"브랜딩"},"2c19e84fb895b15f5dea52dc":{"b":"빈웨드","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"채널·유통"},"6e4297ea474250f7203c25ec":{"b":"무븐","v1":"마케팅","v2":"브랜딩","c1":"브랜딩","c2":"세무·회계"},"15adf7fd5051d125998209ba":{"b":"버클다운","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"9c5a54df320fcb0acfbf1b79":{"b":"누벨르미에르","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"d40cfe45e776674e3ae1c746":{"b":"큐스","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"7190fee8d25a1f54b73d08ad":{"b":"하이네(HINE)","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"13beb7d9824ad223e44b3248":{"b":"프롬웨얼","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"599be68348bad35c0ffff9a6":{"b":"레큘리","v1":"마케팅","v2":"채널·유통","c1":"채널·유통","c2":"마케팅"},"8f66565c247dd2a0c749a0e0":{"b":"LAD EDITION","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"채널·유통"},"79cf1229fad4b9632799d358":{"b":"오아트","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"채널·유통"},"4dc3a8595c2c0d897351e07d":{"b":"미미몽드","v1":"세무·회계","v2":"마케팅","c1":"세무·회계","c2":"마케팅"},"c54154db080d95ad23983412":{"b":"오버그레이","v1":"세무·회계","v2":"마케팅","c1":"마케팅","c2":"브랜딩"},"d5b0a31252154708bde99e6b":{"b":"엔디오디","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"5f2fa3fc387bfc5bd74eaaa6":{"b":"르브아제","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"채널·유통"},"3371123175a3420cc25cbec2":{"b":"핸틀 HENTLE","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"브랜딩"},"7c3f8a4420f6433d88b98063":{"b":"엔엔피스","v1":"세무·회계","v2":"마케팅","c1":"마케팅","c2":"채널·유통"},"9b9ddf5137048d7e7c83b4f8":{"b":"뤼드유제니","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"브랜딩"},"f4bcfd28778a63ca75652210":{"b":"fakiii","v1":"세무·회계","v2":"마케팅","c1":"마케팅","c2":"채널·유통"},"1969d81bf4868092d000b820":{"b":"누바이브","v1":"세무·회계","v2":"마케팅","c1":"마케팅","c2":"채널·유통"},"4268efbf7bf6c8341a88aed8":{"b":"헤베렛","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"daaa1eff14db18b6646fcaec":{"b":"블루썬플라워","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"세무·회계"},"6a04a5c39476dbf44893561a":{"b":"르세렌","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"브랜딩"},"e624711f2012972bac9aff9d":{"b":"투스페이스","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"채널·유통"},"738bbd59db23dcf7be0270e2":{"b":"씨웨어 바이 더 지니어스","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"세무·회계"},"75449521476bff063442aecd":{"b":"쿠르나르","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"0620ede6c03c80c11cc59920":{"b":"디어미(dear,me)","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"f55ba6c877d67ca08a80ebe3":{"b":"respect","v1":"브랜딩","v2":"채널·유통","c1":"브랜딩","c2":"채널·유통"},"2d22dad64784166422993844":{"b":"밋맷밋","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"브랜딩"},"399bd961a29904cbd972dcae":{"b":"사유","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"43ca3053e520a6c147f69175":{"b":"베드포드일레븐스","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"채널·유통"},"77f82ab5aab7077daa77ed0a":{"b":"떨스티클럽","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"1e25c39d21f76478f71d68d2":{"b":"더왈드","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"채널·유통"},"e613e4a1cd78fa528e8a27c8":{"b":"헤누(HENU)","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"채널·유통"},"e4062543c7c85de8a921c6ee":{"b":"더텅","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"브랜딩"},"5e20f50fa97b89c230cb7eb0":{"b":"아흐레","v1":"세무·회계","v2":"브랜딩","c1":"브랜딩","c2":"마케팅"},"ee36805cc0d5044cb31ee377":{"b":"오운서","v1":"마케팅","v2":"브랜딩","c1":"브랜딩","c2":"마케팅"},"6c5028e6e472817733e6827c":{"b":"미스틱문","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"73c9dd77631d6f9996f285fb":{"b":"디모멘트","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"브랜딩"},"8dacc2a83b0c3f44a9490715":{"b":"ONNHANS(온한스)","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"채널·유통"},"767cd7706aa3fd0485641512":{"b":"오브콜스와이낫","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"채널·유통"},"75410a45da2151ec4c4c3358":{"b":"디메이든(demaden)","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"브랜딩"},"7a08a5ea68daad829d98090a":{"b":"아보프렌즈","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"채널·유통"},"aa0e089829b47cd7d312e950":{"b":"비마이무드","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"채널·유통"},"b3f64a1d286ecc8f445f00b2":{"b":"프라포투투","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"채널·유통"},"e1ac34a5f27722a56f5e5a54":{"b":"파르피","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"세무·회계"},"660fb3fbd1637dfd02468a44":{"b":"셀솝","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"세무·회계"},"0b0e600ccc7e199c0393864e":{"b":"베이루트","v1":"마케팅","v2":"브랜딩","c1":"채널·유통","c2":"마케팅"},"0c823249d8ffee78ceaa957d":{"b":"XOX","v1":"브랜딩","v2":"마케팅","c1":"브랜딩","c2":"마케팅"},"b91186ad1162173d9e3f6192":{"b":"eoustudio","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"세무·회계"},"99b96b986a818032ec4b7fb8":{"b":"테네르","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"3cf7d6f5cb271300667e688b":{"b":"터틀백","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"브랜딩"},"6484245a8c92e3a8199bdbdc":{"b":"쇼브오프","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"세무·회계"},"ed7909e98b56b306cdafce36":{"b":"비피투디스오더","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"브랜딩"},"7ed2b0891d7b242cb232d60d":{"b":"멜로토리","v1":"브랜딩","v2":"마케팅","c1":"브랜딩","c2":"마케팅"},"9e013389ccad02ef08bd6329":{"b":"아케시","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"채널·유통"},"277a3164f680573731337489":{"b":"줄리아페페(JULIAPEPE)","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"브랜딩"},"91e36b135242977d62cfb0b2":{"b":"알키알카(ALKI ALKA)","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"채널·유통"},"796c8c090c222da468787ab0":{"b":"슈하이","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"세무·회계"},"42b7c24467b4d80a5095202b":{"b":"투오","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"bc99dd94c21f05a01c2be8a0":{"b":"바이바이섭","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"7c916232a968c589a5875ad1":{"b":"오프닝선샤인","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"채널·유통"},"aba18abd6fce3b7d326c5af3":{"b":"더여백26","v1":"세무·회계","v2":"마케팅","c1":"마케팅","c2":"세무·회계"},"d648a0edd71d3815ec8e5ad2":{"b":"옴니포턴트","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"채널·유통"},"722e2ccf851f9e8ec0f827c1":{"b":"메타퍼","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"ac4f9142e7ee803d11a3d9b6":{"b":"긱타아이웨어","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"브랜딩"},"cbf2d59b0169f645983cd29d":{"b":"쎄꼰도","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"세무·회계"},"3edef3d54158a37c221c6fc1":{"b":"앤딜로즈","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"브랜딩"},"def40916f00756854beaf433":{"b":"LECCPROJECT","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"채널·유통"},"0543d601125eaf18f904812b":{"b":"ELBT","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"채널·유통"},"503a5ce29fdc1cf2b6dd203b":{"b":"에클리스","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"5b7e8f9c65ce02185ac7de2c":{"b":"루나앤루나","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"85019dd3604a164336d1d3f1":{"b":"마리브","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"세무·회계"},"adf2e930462ebb22ee64a6b6":{"b":"피아네르","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"e9131ae47db5eed19faf3372":{"b":"셋업이엑스이","v1":"마케팅","v2":"브랜딩","c1":"브랜딩","c2":"마케팅"},"b2b780e1e00794ab29783b56":{"b":"다이아몬드 레이라","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"f63087c6ce7efdf91d2a637b":{"b":"언노운플라넷","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"세무·회계"},"d92d25cef9f943b5678921ff":{"b":"카미드","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"358b4ce3d4d3461693a515b6":{"b":"레니비","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"5e001987ab0b11373887151f":{"b":"벵디","v1":"세무·회계","v2":"브랜딩","c1":"세무·회계","c2":"마케팅"},"6c4571021ea35410cabd4743":{"b":"아뜰리에페이","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"d3118fc063126b0ed477865c":{"b":"르바세","v1":"마케팅","v2":"세무·회계","c1":"마케팅","c2":"세무·회계"},"6b65c8a2814215fd39338de7":{"b":"어비험즈","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"채널·유통"},"f9144a1987694b5b0cae6624":{"b":"유피라운지","v1":"마케팅","v2":"브랜딩","c1":"채널·유통","c2":"마케팅"},"756866407b2b78bd40aec736":{"b":"하밍","v1":"마케팅","v2":"채널·유통","c1":"마케팅","c2":"브랜딩"},"a5714986fdd95b3c54240287":{"b":"플리티카","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"de407749402ec2775cff9fd6":{"b":"마치(March)","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"b5ddd243e37a5d5c9a56373c":{"b":"온리드프로젝트","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"5785531f62a99ef893a9ed98":{"b":"루블리스","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"a7f26c32762cda90312ad162":{"b":"벤들스","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"21e0c6fec177fd19f4261d7d":{"b":"오브먼트","v1":"자가진단 미작성","v2":"자가진단 미작성","c1":"자가진단 미작성","c2":"자가진단 미작성"},"404a42afcf7678a7b4b88bb1":{"b":"무칸","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"},"8b8907a6e47485170cd1f2b2":{"b":"디오넬","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"채널·유통"},"04545eb68112cf34f16cca7a":{"b":"니즈더펫(needsthepet)","v1":"마케팅","v2":"브랜딩","c1":"마케팅","c2":"브랜딩"}};
+const SALT = 'sodam2026';
+
+const $ = id => document.getElementById(id);
+const input = $('bizno'), btn = $('searchBtn'), msg = $('msg'), result = $('result');
+
+// 입력 자동 포맷 (000-00-00000)
+input.addEventListener('input', () => {
+  const d = input.value.replace(/\D/g,'').slice(0,10);
+  input.value = d.length > 5 ? d.slice(0,3)+'-'+d.slice(3,5)+'-'+d.slice(5)
+              : d.length > 3 ? d.slice(0,3)+'-'+d.slice(3) : d;
+});
+input.addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
+btn.addEventListener('click', search);
+
+function validBizNo(s){
+  if(!/^\d{10}$/.test(s)) return false;
+  const w=[1,3,7,1,3,7,1,3,5];
+  let t=0;
+  for(let i=0;i<9;i++) t += +s[i]*w[i];
+  t += Math.floor(+s[8]*5/10);
+  return (10 - t%10) % 10 === +s[9];
+}
+
+async function sha256hex(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// 구형 브라우저/파일(file://) 환경 대비: Web Crypto 불가 시 순수 JS 폴백
+function sha256hexSync(ascii){
+  function rightRotate(value, amount){ return (value>>>amount)|(value<<(32-amount)); }
+  var mathPow=Math.pow, maxWord=mathPow(2,32), i, j, result='';
+  var words=[], asciiBitLength=ascii.length*8;
+  var hash=sha256hexSync.h=sha256hexSync.h||[];
+  var k=sha256hexSync.k=sha256hexSync.k||[];
+  var primeCounter=k.length, isComposite={};
+  for(var candidate=2; primeCounter<64; candidate++){
+    if(!isComposite[candidate]){
+      for(i=0;i<313;i+=candidate) isComposite[i]=candidate;
+      hash[primeCounter]=(mathPow(candidate,.5)*maxWord)|0;
+      k[primeCounter++]=(mathPow(candidate,1/3)*maxWord)|0;
+    }
+  }
+  ascii+='\x80';
+  while(ascii.length%64-56) ascii+='\x00';
+  for(i=0;i<ascii.length;i++){
+    j=ascii.charCodeAt(i);
+    if(j>>8) return '';
+    words[i>>2]|=j<<((3-i)%4)*8;
+  }
+  words[words.length]=(asciiBitLength/maxWord)|0;
+  words[words.length]=asciiBitLength;
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16), oldHash=hash;
+    hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15], w2=w[i-2];
+      var a=hash[0], e=hash[4];
+      var temp1=hash[7]
+        +(rightRotate(e,6)^rightRotate(e,11)^rightRotate(e,25))
+        +((e&hash[5])^((~e)&hash[6]))
+        +k[i]
+        +(w[i]=(i<16)?w[i]:(w[i-16]
+          +(rightRotate(w15,7)^rightRotate(w15,18)^(w15>>>3))
+          +w[i-7]
+          +(rightRotate(w2,17)^rightRotate(w2,19)^(w2>>>10)))|0);
+      var temp2=(rightRotate(a,2)^rightRotate(a,13)^rightRotate(a,22))
+        +((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(temp1+temp2)|0].concat(hash);
+      hash[4]=(hash[4]+temp1)|0;
+    }
+    for(i=0;i<8;i++) hash[i]=(hash[i]+oldHash[i])|0;
+  }
+  for(i=0;i<8;i++){
+    for(j=3;j+1;j--){
+      var b=(hash[i]>>(j*8))&255;
+      result+=((b<16)?0:'')+b.toString(16);
+    }
+  }
+  return result;
+}
+
+async function hashKey(bizno){
+  const s = SALT + bizno;
+  try{
+    if(crypto && crypto.subtle) return (await sha256hex(s)).slice(0,24);
+  }catch(e){/* file:// 등에서 subtle 미지원 */}
+  return sha256hexSync(s).slice(0,24);
+}
+
+function showError(t){ msg.className='msg error'; msg.textContent=t; result.style.display='none'; }
+function showInfo(t){ msg.className='msg info'; msg.textContent=t; result.style.display='none'; }
+
+function setVal(id, v){
+  const el = $(id);
+  if(v && v !== '자가진단 미작성'){ el.textContent = v; el.className='v'; }
+  else { el.textContent = '—'; el.className='v empty'; }
+}
+
+async function search(){
+  const digits = input.value.replace(/\D/g,'');
+  msg.className='msg'; msg.textContent='';
+  if(digits.length !== 10) return showError('사업자등록번호 10자리를 모두 입력해 주세요.');
+  if(!validBizNo(digits)) return showError('유효하지 않은 사업자등록번호입니다. 다시 확인해 주세요.');
+  btn.disabled = true; btn.textContent = '조회 중';
+  try{
+    const key = await hashKey(digits);
+    const rec = DATA[key];
+    if(!rec){
+      showInfo('조회 결과가 없습니다. 소담클래스 참여 업체가 아니거나, 번호를 다시 확인해 주세요.');
+      return;
+    }
+    if(rec.v1 === '자가진단 미작성'){
+      showInfo(`${rec.b} — 자가진단 미제출 업체입니다. 자가진단 제출 후 배정 결과를 확인하실 수 있습니다. 운영 사무국으로 문의해 주세요.`);
+      return;
+    }
+    $('rBrand').textContent = rec.b;
+    setVal('rV1', rec.v1); setVal('rV2', rec.v2);
+    setVal('rC1', rec.c1); setVal('rC2', rec.c2);
+    result.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '조회';
+  }
+}
+</script>
+</body>
+</html>
